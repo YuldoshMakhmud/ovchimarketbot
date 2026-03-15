@@ -12,30 +12,21 @@ def get_db():
 
 
 def _get_credentials():
-    """
-    Firebase credentials olish:
-    1. FIREBASE_CREDENTIALS_JSON env var (Railway)
-    2. FIREBASE_CREDENTIALS_PATH fayl (lokal)
-    3. FIREBASE_CREDENTIALS_PATH o'zi JSON string bo'lsa (Railway noto'g'ri sozlangan)
-    """
-
-    # 1. To'g'ri yo'l: FIREBASE_CREDENTIALS_JSON env var
-    raw = os.environ.get("FIREBASE_CREDENTIALS_JSON", "")
-    if raw and raw.strip().startswith("{"):
-        raw = raw.replace('\\n', '\n')
+    # 1. FIREBASE_CREDENTIALS_JSON env var (Railway - to'g'ri yo'l)
+    raw = os.environ.get("FIREBASE_CREDENTIALS_JSON", "").strip()
+    if raw.startswith("{"):
         cred_dict = json.loads(raw)
         print("✅ Firebase: FIREBASE_CREDENTIALS_JSON dan yuklandi")
         return credentials.Certificate(cred_dict)
 
     # 2. FIREBASE_CREDENTIALS_PATH o'zi JSON string bo'lsa
-    path = settings.FIREBASE_CREDENTIALS_PATH
-    if path and path.strip().startswith("{"):
-        path = path.replace('\\n', '\n')
+    path = settings.FIREBASE_CREDENTIALS_PATH.strip()
+    if path.startswith("{"):
         cred_dict = json.loads(path)
-        print("✅ Firebase: FIREBASE_CREDENTIALS_PATH ichidagi JSON dan yuklandi")
+        print("✅ Firebase: PATH ichidagi JSON dan yuklandi")
         return credentials.Certificate(cred_dict)
 
-    # 3. Lokal: fayl yo'li
+    # 3. Lokal fayl
     print(f"✅ Firebase: {path} fayldan yuklandi")
     return credentials.Certificate(path)
 
@@ -45,7 +36,6 @@ async def connect_db():
     if not firebase_admin._apps:
         cred = _get_credentials()
         firebase_admin.initialize_app(cred)
-
     _db = firestore_async.client()
     print(f"✅ Firebase Firestore ga ulandi: {settings.FIREBASE_PROJECT_ID}")
 
