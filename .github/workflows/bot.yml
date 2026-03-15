@@ -1,0 +1,39 @@
+name: Ovchi Market Bot
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # Qo'lda ishga tushirish
+  schedule:
+    - cron: '0 */5 * * *'  # Har 5 soatda qayta ishga tushirish
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350  # 5 soat 50 daqiqa (6 soat limitdan oldin)
+
+    steps:
+      - name: Kodni yuklab olish
+        uses: actions/checkout@v4
+
+      - name: Python 3.12 o'rnatish
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Kutubxonalarni o'rnatish
+        run: pip install -r requirements.txt
+
+      - name: Botni ishga tushirish
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          ADMIN_IDS: ${{ secrets.ADMIN_IDS }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CREDENTIALS_JSON: ${{ secrets.FIREBASE_CREDENTIALS_JSON }}
+          CARD_NUMBER: ${{ secrets.CARD_NUMBER }}
+          CARD_OWNER: ${{ secrets.CARD_OWNER }}
+          SHOP_NAME: "Ovchi Market"
+          SHOP_CURRENCY: "UZS"
+          MIN_ORDER_AMOUNT: "10000"
+        run: python main.py
