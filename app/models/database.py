@@ -11,23 +11,39 @@ def get_db():
     return _db
 
 
+def _get_credentials():
+    """
+    Firebase credentials olish:
+    1. FIREBASE_CREDENTIALS_JSON env var (Railway)
+    2. FIREBASE_CREDENTIALS_PATH fayl (lokal)
+    3. FIREBASE_CREDENTIALS_PATH o'zi JSON string bo'lsa (Railway noto'g'ri sozlangan)
+    """
+
+    # 1. To'g'ri yo'l: FIREBASE_CREDENTIALS_JSON env var
+    raw = os.environ.get("FIREBASE_CREDENTIALS_JSON", "")
+    if raw and raw.strip().startswith("{"):
+        raw = raw.replace('\\n', '\n')
+        cred_dict = json.loads(raw)
+        print("✅ Firebase: FIREBASE_CREDENTIALS_JSON dan yuklandi")
+        return credentials.Certificate(cred_dict)
+
+    # 2. FIREBASE_CREDENTIALS_PATH o'zi JSON string bo'lsa
+    path = settings.FIREBASE_CREDENTIALS_PATH
+    if path and path.strip().startswith("{"):
+        path = path.replace('\\n', '\n')
+        cred_dict = json.loads(path)
+        print("✅ Firebase: FIREBASE_CREDENTIALS_PATH ichidagi JSON dan yuklandi")
+        return credentials.Certificate(cred_dict)
+
+    # 3. Lokal: fayl yo'li
+    print(f"✅ Firebase: {path} fayldan yuklandi")
+    return credentials.Certificate(path)
+
+
 async def connect_db():
     global _db
     if not firebase_admin._apps:
-        firebase_creds_json = os.environ.get("FIREBASE_CREDENTIALS_JSON")
-
-        if firebase_creds_json:
-            # Railway: env variable dan JSON parse qilish
-            # \\n -> \n ga o'zgartirish (Railway escape qiladi)
-            firebase_creds_json = firebase_creds_json.replace('\\n', '\n')
-            cred_dict = json.loads(firebase_creds_json)
-            cred = credentials.Certificate(cred_dict)
-            print("✅ Firebase credentials env variable dan yuklandi")
-        else:
-            # Lokal: JSON fayldan yuklash
-            cred = credentials.Certificate(settings.FIREBASE_CREDENTIALS_PATH)
-            print("✅ Firebase credentials fayldan yuklandi")
-
+        cred = _get_credentials()
         firebase_admin.initialize_app(cred)
 
     _db = firestore_async.client()
