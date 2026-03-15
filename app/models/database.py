@@ -14,12 +14,12 @@ def get_db():
 async def connect_db():
     global _db
     if not firebase_admin._apps:
-        # Railway da FIREBASE_CREDENTIALS_JSON env variable ishlatiladi
-        # Lokalda JSON fayl ishlatiladi
         firebase_creds_json = os.environ.get("FIREBASE_CREDENTIALS_JSON")
 
         if firebase_creds_json:
             # Railway: env variable dan JSON parse qilish
+            # \\n -> \n ga o'zgartirish (Railway escape qiladi)
+            firebase_creds_json = firebase_creds_json.replace('\\n', '\n')
             cred_dict = json.loads(firebase_creds_json)
             cred = credentials.Certificate(cred_dict)
             print("✅ Firebase credentials env variable dan yuklandi")
